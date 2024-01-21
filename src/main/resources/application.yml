@@ -1,0 +1,11 @@
+magiavventure:
+  lib:
+    jwt:
+      endpoints:
+        - path: /v1/*user*
+          authenticated: true
+        - path: /v1/loginById
+          authenticated: false
+      excludedEndpoints:
+        - path: /v1/loginById
+          method: POST
