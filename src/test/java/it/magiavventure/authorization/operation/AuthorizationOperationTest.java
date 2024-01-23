@@ -2,9 +2,11 @@ package it.magiavventure.authorization.operation;
 
 import it.magiavventure.authorization.model.CreateUser;
 import it.magiavventure.authorization.model.Login;
+import it.magiavventure.authorization.model.LoginResponse;
 import it.magiavventure.authorization.model.UpdateUser;
 import it.magiavventure.authorization.service.AuthorizationService;
 import it.magiavventure.authorization.service.UserService;
+import it.magiavventure.jwt.service.JwtService;
 import it.magiavventure.mongo.model.Category;
 import it.magiavventure.mongo.model.User;
 import org.junit.jupiter.api.Assertions;
@@ -15,12 +17,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.util.List;
 import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("User operation tests")
+@DisplayName("Authorization operation tests")
 class AuthorizationOperationTest {
 
     @InjectMocks
@@ -28,6 +31,8 @@ class AuthorizationOperationTest {
 
     @Mock
     private AuthorizationService authorizationService;
+    @Mock
+    private JwtService jwtService;
 
     @Mock
     private UserService userService;
@@ -36,16 +41,28 @@ class AuthorizationOperationTest {
     @DisplayName("Login user by id")
     void loginUser_byId() {
         Login login = Login.builder().id(UUID.randomUUID()).build();
+        LoginResponse loginResponse = LoginResponse
+                .builder()
+                .user(User.builder().id(UUID.randomUUID()).build())
+                .token("token")
+                .build();
+        MockHttpServletResponse response = new MockHttpServletResponse();
 
         Mockito.when(authorizationService.loginById(login.getId()))
-                .thenReturn("token");
+                .thenReturn(loginResponse);
+        Mockito.when(jwtService.getTokenHeader())
+                .thenReturn("mg-a-token");
 
-        String token = authorizationOperation.loginById(login);
+        User user = authorizationOperation.loginById(login, response);
 
         Mockito.verify(authorizationService).loginById(login.getId());
+        Mockito.verify(jwtService).getTokenHeader();
 
-        Assertions.assertNotNull(token);
-        Assertions.assertEquals("token", token);
+        Assertions.assertNotNull(user);
+        Assertions.assertEquals(user, loginResponse.getUser());
+        Assertions.assertEquals("token", loginResponse.getToken());
+        Assertions.assertTrue(response.containsHeader("mg-a-token"));
+        Assertions.assertEquals("token", response.getHeader("mg-a-token"));
     }
 
     @Test

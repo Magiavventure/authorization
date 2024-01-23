@@ -2,10 +2,13 @@ package it.magiavventure.authorization.operation;
 
 import it.magiavventure.authorization.model.CreateUser;
 import it.magiavventure.authorization.model.Login;
+import it.magiavventure.authorization.model.LoginResponse;
 import it.magiavventure.authorization.model.UpdateUser;
 import it.magiavventure.authorization.service.AuthorizationService;
 import it.magiavventure.authorization.service.UserService;
+import it.magiavventure.jwt.service.JwtService;
 import it.magiavventure.mongo.model.User;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +26,13 @@ public class AuthorizationOperation {
 
     private final AuthorizationService authorizationService;
     private final UserService userService;
+    private final JwtService jwtService;
     
     @PostMapping("/loginById")
-    public String loginById(@RequestBody @Valid Login login) {
-        return authorizationService.loginById(login.getId());
+    public User loginById(@RequestBody @Valid Login login, HttpServletResponse response) {
+        LoginResponse loginResponse = authorizationService.loginById(login.getId());
+        response.setHeader(jwtService.getTokenHeader(), loginResponse.getToken());
+        return loginResponse.getUser();
     }
 
     @PostMapping("/saveUser")

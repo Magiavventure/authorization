@@ -2,10 +2,28 @@ magiavventure:
   lib:
     jwt:
       endpoints:
-        - path: /v1/*user*
-          authenticated: true
+        - path: /v1/saveUser
+          authenticated: false
+        - path: /v1/checkUserName**
+          authenticated: false
         - path: /v1/loginById
           authenticated: false
+        - path: /v1/retrieveUsers
+          authenticated: true
+          roles: admin
+        - path: /v1/retrieveUser**
+          authenticated: true
+          roles: user,admin
+        - path: /v1/updateUser
+          authenticated: true
+          roles: user,admin
+        - path: /v1/deleteUser
+          authenticated: true
+          roles: user,admin
       excludedEndpoints:
         - path: /v1/loginById
           method: POST
+        - path: /v1/saveUser
+          method: POST
+        - path: /v1/checkUserName**
+          method: GET
