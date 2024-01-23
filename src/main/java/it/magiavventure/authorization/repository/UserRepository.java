@@ -1,6 +1,6 @@
 package it.magiavventure.authorization.repository;
 
-import it.magiavventure.authorization.entity.EUser;
+import it.magiavventure.mongo.entity.EUser;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

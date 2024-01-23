@@ -1,12 +1,12 @@
 package it.magiavventure.authorization.service;
 
-import it.magiavventure.authorization.entity.EUser;
 import it.magiavventure.authorization.error.AuthorizationException;
 import it.magiavventure.authorization.mapper.UserMapper;
 import it.magiavventure.authorization.model.CreateUser;
 import it.magiavventure.authorization.model.UpdateUser;
 import it.magiavventure.authorization.repository.UserRepository;
 import it.magiavventure.common.error.MagiavventureException;
+import it.magiavventure.mongo.entity.EUser;
 import it.magiavventure.mongo.model.User;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Example;

@@ -1,6 +1,6 @@
 package it.magiavventure.authorization.mapper;
 
-import it.magiavventure.authorization.entity.EUser;
+import it.magiavventure.mongo.entity.EUser;
 import it.magiavventure.mongo.model.Category;
 import it.magiavventure.mongo.model.User;
 import org.junit.jupiter.api.Assertions;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@DisplayName("User error mapping tests")
+@DisplayName("User mapping tests")
 class UserMapperTest {
 
     private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);

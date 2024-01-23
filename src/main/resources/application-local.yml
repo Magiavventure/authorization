@@ -1,18 +1,6 @@
-#ENV MAGIAVVENTURE_LIB_COMMON_JWT_SECRET - MAGIAVVENTURE_LIB_COMMON_JWT_VALIDITY - MAGIAVVENTURE_LIB_COMMON_JWT_HEADER
-
-spring:
-  data:
-    mongodb:
-      uri: mongodb://localhost:27017/magiavventure
-      uuid-representation: standard
-      auto-index-creation: true
+#MAGIAVVENTURE_LIB_JWT_SECRET - MAGIAVVENTURE_LIB_JWT_VALIDITY - MAGIAVVENTURE_LIB_JWT_HEADER
+#SPRING_DATA_MONGODB_URI - SPRING_DATA_MONGODB_UUID-REPRESENTATION - SPRING_DATA_MONGODB_AUTO-INDEX-CREATION
 
 logging:
   level:
-    app.magiavventure: debug
-
-server:
-  port: 8081
-  error:
-    include-message: always
-    include-binding-errors: always
+    it.magiavventure: debug
