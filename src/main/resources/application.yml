@@ -1,5 +1,18 @@
 magiavventure:
   lib:
+    common:
+      errors:
+        service-errors-messages:
+          user-not-found:
+            code: user-not-found
+            message: |-
+              L'utente con id '%s' non è stato trovato
+            status: 404
+          user-exists:
+            code: user-exists
+            message: |-
+              Il nome '%s' non è disponibile
+            status: 409
     jwt:
       endpoints:
         - path: /v1/saveUser
