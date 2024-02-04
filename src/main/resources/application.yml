@@ -3,6 +3,11 @@ magiavventure:
     common:
       errors:
         service-errors-messages:
+          user-blocked:
+            code: user-blocked
+            message: |-
+              L'utente è bloccato
+            status: 401
           user-not-found:
             code: user-not-found
             message: |-
@@ -17,20 +22,26 @@ magiavventure:
       endpoints:
         - path: /v1/saveUser
           authenticated: false
-        - path: /v1/checkUserName**
+        - path: /v1/checkUserName/**
           authenticated: false
         - path: /v1/loginById
           authenticated: false
         - path: /v1/retrieveUsers
           authenticated: true
           roles: admin
-        - path: /v1/retrieveUser**
+        - path: /v1/elevateUser/**
+          authenticated: true
+          roles: admin
+        - path: /v1/banUser/**
+          authenticated: true
+          roles: admin
+        - path: /v1/retrieveUser/**
           authenticated: true
           roles: user,admin
         - path: /v1/updateUser
           authenticated: true
           roles: user,admin
-        - path: /v1/deleteUser
+        - path: /v1/deleteUser/**
           authenticated: true
           roles: user,admin
       excludedEndpoints:
@@ -38,5 +49,5 @@ magiavventure:
           method: POST
         - path: /v1/saveUser
           method: POST
-        - path: /v1/checkUserName**
+        - path: /v1/checkUserName/**
           method: GET

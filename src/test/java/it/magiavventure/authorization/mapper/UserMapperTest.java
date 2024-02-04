@@ -23,7 +23,7 @@ class UserMapperTest {
         EUser eUser = EUser
                 .builder()
                 .id(UUID.randomUUID())
-                .active(true)
+                .banExpiration(LocalDateTime.now())
                 .name("name")
                 .createdDate(LocalDateTime.now())
                 .lastModifiedDate(LocalDateTime.now())
@@ -50,7 +50,6 @@ class UserMapperTest {
         EUser eUser = EUser
                 .builder()
                 .id(UUID.randomUUID())
-                .active(true)
                 .name("name")
                 .createdDate(LocalDateTime.now())
                 .lastModifiedDate(LocalDateTime.now())

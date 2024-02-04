@@ -1,13 +1,15 @@
 package it.magiavventure.authorization.service;
 
 import it.magiavventure.authorization.mapper.UserMapper;
+import it.magiavventure.authorization.model.BanUser;
 import it.magiavventure.authorization.model.CreateUser;
 import it.magiavventure.authorization.model.UpdateUser;
-import it.magiavventure.authorization.repository.UserRepository;
 import it.magiavventure.common.error.MagiavventureException;
+import it.magiavventure.jwt.service.UserJwtService;
 import it.magiavventure.mongo.entity.EUser;
 import it.magiavventure.mongo.model.Category;
 import it.magiavventure.mongo.model.User;
+import it.magiavventure.mongo.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,6 +32,8 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
     @Mock
+    private UserJwtService userJwtService;
+    @Mock
     private UserRepository userRepository;
     @Spy
     private UserMapper userMapper = Mappers.getMapper(UserMapper.class);
@@ -37,7 +43,6 @@ class UserServiceTest {
     ArgumentCaptor<Example<EUser>> exampleArgumentCaptor;
     @Captor
     ArgumentCaptor<Sort> sortArgumentCaptor;
-
     @Test
     @DisplayName("Create user with name that not exists")
     void createUser_ok_nameNotExists() {
@@ -57,7 +62,6 @@ class UserServiceTest {
                 .id(UUID.randomUUID())
                 .name("test")
                 .preferredCategories(categories)
-                .active(true)
                 .build();
 
         Mockito.when(userRepository.save(eUserArgumentCaptor.capture()))
@@ -78,8 +82,8 @@ class UserServiceTest {
         Assertions.assertIterableEquals(createUser.getPreferredCategories(), user.getPreferredCategories());
         Assertions.assertEquals(userCapt.getName(), user.getName());
         Assertions.assertIterableEquals(userCapt.getPreferredCategories(), user.getPreferredCategories());
+        Assertions.assertIterableEquals(userCapt.getAuthorities(), List.of("user"));
         Assertions.assertNotNull(userCapt.getId());
-        Assertions.assertTrue(userCapt.isActive());
         Assertions.assertEquals(createUser.getName(), example.getProbe().getName());
     }
 
@@ -133,18 +137,16 @@ class UserServiceTest {
                 .id(id)
                 .name("test")
                 .preferredCategories(categories)
-                .active(true)
                 .build();
         var eUserUpdated = EUser
                 .builder()
                 .id(id)
                 .name("test 2")
                 .preferredCategories(categories)
-                .active(false)
                 .build();
 
-        Mockito.when(userRepository.findById(id))
-                .thenReturn(Optional.of(eUser));
+        Mockito.when(userJwtService.retrieveById(id))
+                .thenReturn(eUser);
         Mockito.when(userRepository.save(eUserArgumentCaptor.capture()))
                 .thenReturn(eUserUpdated);
         Mockito.when(userRepository.exists(exampleArgumentCaptor.capture()))
@@ -152,7 +154,7 @@ class UserServiceTest {
 
         User user = userService.updateUser(updateUser);
 
-        Mockito.verify(userRepository).findById(id);
+        Mockito.verify(userJwtService).retrieveById(id);
         Mockito.verify(userRepository).save(eUserArgumentCaptor.capture());
         Mockito.verify(userRepository).exists(exampleArgumentCaptor.capture());
         EUser userCapt = eUserArgumentCaptor.getValue();
@@ -164,7 +166,6 @@ class UserServiceTest {
         Assertions.assertEquals(updateUser.getName(), userCapt.getName());
         Assertions.assertIterableEquals(updateUser.getPreferredCategories(), userCapt.getPreferredCategories());
         Assertions.assertNotNull(userCapt.getId());
-        Assertions.assertTrue(userCapt.isActive());
         Assertions.assertEquals(updateUser.getName(), example.getProbe().getName());
     }
 
@@ -189,24 +190,22 @@ class UserServiceTest {
                 .id(id)
                 .name("test")
                 .preferredCategories(categories)
-                .active(true)
                 .build();
         var eUserUpdated = EUser
                 .builder()
                 .id(id)
                 .name("test")
                 .preferredCategories(categories)
-                .active(false)
                 .build();
 
-        Mockito.when(userRepository.findById(id))
-                .thenReturn(Optional.of(eUser));
+        Mockito.when(userJwtService.retrieveById(id))
+                .thenReturn(eUser);
         Mockito.when(userRepository.save(eUserArgumentCaptor.capture()))
                 .thenReturn(eUserUpdated);
 
         User user = userService.updateUser(updateUser);
 
-        Mockito.verify(userRepository).findById(id);
+        Mockito.verify(userJwtService).retrieveById(id);
         Mockito.verify(userRepository).save(eUserArgumentCaptor.capture());
         EUser userCapt = eUserArgumentCaptor.getValue();
 
@@ -216,35 +215,6 @@ class UserServiceTest {
         Assertions.assertEquals(updateUser.getName(), userCapt.getName());
         Assertions.assertIterableEquals(updateUser.getPreferredCategories(), userCapt.getPreferredCategories());
         Assertions.assertNotNull(userCapt.getId());
-        Assertions.assertTrue(userCapt.isActive());
-    }
-
-    @Test
-    @DisplayName("Update user but user not found")
-    void updateUser_ko_userNotExists() {
-        var categories = List.of(Category
-                .builder()
-                .id(UUID.randomUUID())
-                .name("category")
-                .background("background")
-                .build());
-        var updateUser = UpdateUser
-                .builder()
-                .id(UUID.randomUUID())
-                .name("test")
-                .preferredCategories(categories)
-                .build();
-
-        Mockito.when(userRepository.findById(updateUser.getId()))
-                .thenReturn(Optional.empty());
-
-        MagiavventureException exception = Assertions.assertThrows(MagiavventureException.class,
-                () -> userService.updateUser(updateUser));
-
-        Mockito.verify(userRepository).findById(updateUser.getId());
-
-        Assertions.assertEquals("user-not-found", exception.getError().getKey());
-        Assertions.assertEquals(1, exception.getError().getArgs().length);
     }
 
     @Test
@@ -268,18 +238,17 @@ class UserServiceTest {
                 .id(id)
                 .name("test")
                 .preferredCategories(categories)
-                .active(true)
                 .build();
 
-        Mockito.when(userRepository.findById(id))
-                .thenReturn(Optional.of(eUser));
+        Mockito.when(userJwtService.retrieveById(id))
+                .thenReturn(eUser);
         Mockito.when(userRepository.exists(exampleArgumentCaptor.capture()))
                 .thenReturn(true);
 
         MagiavventureException exception = Assertions.assertThrows(MagiavventureException.class,
                 () -> userService.updateUser(updateUser));
 
-        Mockito.verify(userRepository).findById(id);
+        Mockito.verify(userJwtService).retrieveById(id);
         Mockito.verify(userRepository).exists(exampleArgumentCaptor.capture());
         Example<EUser> example = exampleArgumentCaptor.getValue();
 
@@ -303,37 +272,18 @@ class UserServiceTest {
                 .id(id)
                 .name("test")
                 .preferredCategories(categories)
-                .active(true)
                 .build();
 
-        Mockito.when(userRepository.findById(id))
-                .thenReturn(Optional.of(eUser));
+        Mockito.when(userJwtService.retrieveById(id))
+                .thenReturn(eUser);
 
         User user = userService.findById(id);
 
-        Mockito.verify(userRepository).findById(id);
+        Mockito.verify(userJwtService).retrieveById(id);
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(eUser.getName(), user.getName());
         Assertions.assertIterableEquals(eUser.getPreferredCategories(), user.getPreferredCategories());
-    }
-
-    @Test
-    @DisplayName("Find user by id but not found")
-    void findUserById_ko_notFound() {
-        var id = UUID.randomUUID();
-
-        Mockito.when(userRepository.findById(id))
-                .thenReturn(Optional.empty());
-
-        MagiavventureException exception = Assertions.assertThrows(MagiavventureException.class,
-                () -> userService.findById(id));
-
-        Mockito.verify(userRepository).findById(id);
-
-        Assertions.assertNotNull(exception);
-        Assertions.assertEquals("user-not-found", exception.getError().getKey());
-        Assertions.assertEquals(1, exception.getError().getArgs().length);
     }
 
     @Test
@@ -351,7 +301,6 @@ class UserServiceTest {
                 .id(id)
                 .name("test")
                 .preferredCategories(categories)
-                .active(true)
                 .build();
         var usersResponse = List.of(eUser);
 
@@ -386,34 +335,158 @@ class UserServiceTest {
                 .id(id)
                 .name("test")
                 .preferredCategories(categories)
-                .active(true)
                 .build();
 
-        Mockito.when(userRepository.findById(id))
-                .thenReturn(Optional.of(eUser));
+        Mockito.when(userJwtService.retrieveById(id))
+                .thenReturn(eUser);
         Mockito.doNothing().when(userRepository).deleteById(id);
 
         userService.deleteById(id);
 
-        Mockito.verify(userRepository).findById(id);
+        Mockito.verify(userJwtService).retrieveById(id);
         Mockito.verify(userRepository).deleteById(id);
     }
 
     @Test
-    @DisplayName("Delete user by id but not found")
-    void deleteUserById_ko_notFound() {
-        var id = UUID.randomUUID();
+    @DisplayName("Find entity by id")
+    void findEntityById_ok() {
+        UUID id = UUID.randomUUID();
+        List<Category> categories = List.of(Category
+                .builder()
+                .id(UUID.randomUUID())
+                .name("category")
+                .background("background")
+                .build());
+        EUser eUser = EUser
+                .builder()
+                .id(id)
+                .name("test")
+                .preferredCategories(categories)
+                .build();
+
+        Mockito.when(userRepository.findById(id))
+                .thenReturn(Optional.of(eUser));
+
+        EUser foundUser = userService.findEntityById(id);
+
+        Mockito.verify(userRepository).findById(id);
+
+        Assertions.assertNotNull(foundUser);
+        Assertions.assertEquals(eUser.getId(), foundUser.getId());
+        Assertions.assertEquals(eUser.getName(), foundUser.getName());
+        Assertions.assertIterableEquals(eUser.getPreferredCategories(), foundUser.getPreferredCategories());
+    }
+
+    @Test
+    @DisplayName("Find entity by id but user not found")
+    void findEntityById_throwException() {
+        UUID id = UUID.randomUUID();
 
         Mockito.when(userRepository.findById(id))
                 .thenReturn(Optional.empty());
 
         MagiavventureException exception = Assertions.assertThrows(MagiavventureException.class,
-                () -> userService.deleteById(id));
+                () -> userService.findEntityById(id));
 
         Mockito.verify(userRepository).findById(id);
 
         Assertions.assertNotNull(exception);
         Assertions.assertEquals("user-not-found", exception.getError().getKey());
-        Assertions.assertEquals(1, exception.getError().getArgs().length);
+        Assertions.assertIterableEquals(List.of(id.toString()), Arrays.asList(exception.getError().getArgs()));
+    }
+
+    @Test
+    @DisplayName("Given id and ban duration ban user for this period")
+    void givenIdAndBanDuration_banUser_ok() {
+        UUID id = UUID.randomUUID();
+        BanUser banUser = BanUser.builder().unit(BanUser.Unit.M).duration(5).build();
+        List<Category> categories = List.of(Category
+                .builder()
+                .id(UUID.randomUUID())
+                .name("category")
+                .background("background")
+                .build());
+        EUser eUser = EUser
+                .builder()
+                .id(id)
+                .name("test")
+                .preferredCategories(categories)
+                .build();
+
+        Mockito.when(userJwtService.retrieveById(id))
+                .thenReturn(eUser);
+        Mockito.when(userRepository.save(eUserArgumentCaptor.capture()))
+                .thenReturn(eUser);
+
+        User user = userService.banUser(id, banUser);
+
+        Mockito.verify(userRepository).save(eUserArgumentCaptor.capture());
+        Mockito.verify(userJwtService).retrieveById(id);
+
+        Assertions.assertNotNull(user);
+        Assertions.assertEquals(eUser.getId(), user.getId());
+        Assertions.assertEquals(eUser.getName(), user.getName());
+        Assertions.assertIterableEquals(eUser.getPreferredCategories(), user.getPreferredCategories());
+        EUser userCaptured = eUserArgumentCaptor.getValue();
+        Assertions.assertNotNull(userCaptured);
+        Assertions.assertEquals(LocalDateTime.now().plusMinutes(5).getMinute(),
+                userCaptured.getBanExpiration().getMinute());
+
+    }
+
+    @Test
+    @DisplayName("Given id give admin authority to user")
+    void givenId_giveAdminAuthorityToUser_ok() {
+        UUID id = UUID.randomUUID();
+        List<Category> categories = List.of(Category
+                .builder()
+                .id(UUID.randomUUID())
+                .name("category")
+                .background("background")
+                .build());
+        EUser eUser = EUser
+                .builder()
+                .id(id)
+                .name("test")
+                .preferredCategories(categories)
+                .build();
+
+        Mockito.when(userJwtService.retrieveById(id))
+                .thenReturn(eUser);
+        Mockito.when(userRepository.save(eUserArgumentCaptor.capture()))
+                .thenReturn(eUser);
+
+        User user = userService.giveAdminAuthorityToUser(id);
+
+        Mockito.verify(userRepository).save(eUserArgumentCaptor.capture());
+        Mockito.verify(userJwtService).retrieveById(id);
+
+        Assertions.assertNotNull(user);
+        Assertions.assertEquals(eUser.getId(), user.getId());
+        Assertions.assertEquals(eUser.getName(), user.getName());
+        Assertions.assertIterableEquals(eUser.getPreferredCategories(), user.getPreferredCategories());
+        EUser userCaptured = eUserArgumentCaptor.getValue();
+        Assertions.assertNotNull(userCaptured);
+        Assertions.assertIterableEquals(List.of("user","admin"), userCaptured.getAuthorities());
+
+    }
+
+    @Test
+    @DisplayName("Evict user cache")
+    void evictUserCache_ok() {
+        UUID id = UUID.randomUUID();
+        List<Category> categories = List.of(Category
+                .builder()
+                .id(UUID.randomUUID())
+                .name("category")
+                .background("background")
+                .build());
+        EUser eUser = EUser
+                .builder()
+                .id(id)
+                .name("test")
+                .preferredCategories(categories)
+                .build();
+        Assertions.assertDoesNotThrow(() -> userService.evictUserCache(eUser));
     }
 }
