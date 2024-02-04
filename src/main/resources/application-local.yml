@@ -14,9 +14,10 @@ spring:
       timeout: 2000
   cache:
     redis:
-      cache-names: user, user-entity
+      cache-names: user, user-entity, users
       time-to-live: 5m
 
+server.port: 8081
 
 logging:
   level:
