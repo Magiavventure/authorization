@@ -1,6 +1,30 @@
 #MAGIAVVENTURE_LIB_JWT_SECRET - MAGIAVVENTURE_LIB_JWT_VALIDITY - MAGIAVVENTURE_LIB_JWT_HEADER
 #SPRING_DATA_MONGODB_URI - SPRING_DATA_MONGODB_UUID-REPRESENTATION - SPRING_DATA_MONGODB_AUTO-INDEX-CREATION
 
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/magiavventure
+      uuid-representation: standard
+      auto-index-creation: true
+    redis:
+      host: localhost
+      database: 0
+      port: 6379
+      timeout: 2000
+  cache:
+    redis:
+      cache-names: user, user-entity
+      time-to-live: 5m
+
+
 logging:
   level:
     it.magiavventure: debug
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: debug
+    org.springframework.cache.*: trace

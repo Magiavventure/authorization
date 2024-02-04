@@ -1,9 +1,6 @@
 package it.magiavventure.authorization.operation;
 
-import it.magiavventure.authorization.model.CreateUser;
-import it.magiavventure.authorization.model.Login;
-import it.magiavventure.authorization.model.LoginResponse;
-import it.magiavventure.authorization.model.UpdateUser;
+import it.magiavventure.authorization.model.*;
 import it.magiavventure.authorization.service.AuthorizationService;
 import it.magiavventure.authorization.service.UserService;
 import it.magiavventure.jwt.service.JwtService;
@@ -217,5 +214,40 @@ class AuthorizationOperationTest {
         authorizationOperation.deleteUser(id);
 
         Mockito.verify(userService).deleteById(id);
+    }
+
+    @Test
+    @DisplayName("Given id and duration of ban proceed with ban user")
+    void givenIdAndBanDuration_proceedWithBanUser_ok() {
+        UUID id = UUID.randomUUID();
+        BanUser banUser = BanUser
+                .builder()
+                .duration(10)
+                .unit(BanUser.Unit.M)
+                .build();
+
+        Mockito.when(userService.banUser(id, banUser))
+                .thenReturn(User.builder().build());
+
+        User user = authorizationOperation.banUser(id, banUser);
+
+        Mockito.verify(userService).banUser(id, banUser);
+
+        Assertions.assertNotNull(user);
+    }
+
+    @Test
+    @DisplayName("Given id elevate user")
+    void givenId_elevateUser_ok() {
+        UUID id = UUID.randomUUID();
+
+        Mockito.when(userService.giveAdminAuthorityToUser(id))
+                .thenReturn(User.builder().build());
+
+        User user = authorizationOperation.elevateUser(id);
+
+        Mockito.verify(userService).giveAdminAuthorityToUser(id);
+
+        Assertions.assertNotNull(user);
     }
 }

@@ -1,9 +1,6 @@
 package it.magiavventure.authorization.operation;
 
-import it.magiavventure.authorization.model.CreateUser;
-import it.magiavventure.authorization.model.Login;
-import it.magiavventure.authorization.model.LoginResponse;
-import it.magiavventure.authorization.model.UpdateUser;
+import it.magiavventure.authorization.model.*;
 import it.magiavventure.authorization.service.AuthorizationService;
 import it.magiavventure.authorization.service.UserService;
 import it.magiavventure.jwt.service.JwtService;
@@ -64,6 +61,16 @@ public class AuthorizationOperation {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable(name = "id") UUID id) {
         userService.deleteById(id);
+    }
+
+    @PutMapping("/banUser/{id}")
+    public User banUser(@PathVariable(name="id") UUID id, @RequestBody @Valid BanUser banUser) {
+        return userService.banUser(id, banUser);
+    }
+
+    @PutMapping("/elevateUser/{id}")
+    public User elevateUser(@PathVariable(name = "id") UUID id) {
+        return userService.giveAdminAuthorityToUser(id);
     }
 
 
