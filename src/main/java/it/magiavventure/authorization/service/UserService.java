@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.convert.DurationStyle;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
@@ -35,6 +36,7 @@ public class UserService {
     private final UserJwtService userJwtService;
     private final UserMapper userMapper;
 
+    @CacheEvict(value = "users", key = "'all'")
     public User createUser(CreateUser createUser) {
         log.debug("Execute create user for '{}'", createUser);
         checkIfUserExists(createUser.getName());
@@ -48,7 +50,12 @@ public class UserService {
         return saveAndMapUser(userToSave);
     }
 
-    @CacheEvict(value = "user_entity", key = "#p0")
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "user_entity", key = "#p0"),
+                    @CacheEvict(value = "users", key = "'all'")
+            }
+    )
     public User banUser(UUID id, BanUser banUser) {
         log.debug("Execute ban user for id '{}' with duration '{}'", id, banUser);
         EUser userToBan = userJwtService.retrieveById(id);
@@ -58,7 +65,12 @@ public class UserService {
         return saveAndMapUser(userToBan);
     }
 
-    @CacheEvict(value = "user_entity", key = "#p0")
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "user_entity", key = "#p0"),
+                    @CacheEvict(value = "users", key = "'all'")
+            }
+    )
     public User giveAdminAuthorityToUser(UUID id) {
         log.debug("Execute give admin authority to user with id '{}'", id);
         EUser eUser = userJwtService.retrieveById(id);
@@ -66,12 +78,22 @@ public class UserService {
         return saveAndMapUser(eUser);
     }
 
-    @CacheEvict(value = "user_entity", key = "#p0.id")
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "user_entity", key = "#p0.id"),
+                    @CacheEvict(value = "users", key = "'all'")
+            }
+    )
     public void evictUserCache(EUser eUser) {
         log.debug("Evicted user_entity cache for key '{}'", eUser.getId());
     }
 
-    @CacheEvict(value = "user_entity", key = "#p0.id")
+    @Caching(
+            evict = {
+                    @CacheEvict(value = "user_entity", key = "#p0.id"),
+                    @CacheEvict(value = "users", key = "'all'")
+            }
+    )
     public User updateUser(UpdateUser updateUser) {
         log.debug("Execute update user for '{}'", updateUser);
         EUser userToUpdate = userJwtService.retrieveById(updateUser.getId());
@@ -85,6 +107,7 @@ public class UserService {
         return saveAndMapUser(userToUpdate);
     }
 
+    @Cacheable(value = "users", key = "'all'")
     public List<User> findAll() {
         log.debug("Execute find all users");
         var sort = Sort.by(Sort.Direction.ASC, "name");
