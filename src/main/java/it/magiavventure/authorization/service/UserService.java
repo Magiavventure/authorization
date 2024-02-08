@@ -6,7 +6,7 @@ import it.magiavventure.authorization.model.BanUser;
 import it.magiavventure.authorization.model.CreateUser;
 import it.magiavventure.authorization.model.UpdateUser;
 import it.magiavventure.common.error.MagiavventureException;
-import it.magiavventure.jwt.service.UserJwtService;
+import it.magiavventure.jwt.service.OwnershipService;
 import it.magiavventure.mongo.entity.EUser;
 import it.magiavventure.mongo.model.User;
 import it.magiavventure.mongo.repository.UserRepository;
@@ -16,6 +16,8 @@ import org.springframework.boot.convert.DurationStyle;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Sort;
@@ -28,13 +30,12 @@ import java.util.UUID;
 @Slf4j
 @Service
 @AllArgsConstructor
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class UserService {
-    private static final String USER_AUTHORITY = "user";
-    private static final String ADMIN_AUTHORITIY = "admin";
-
+    private final UserService self;
     private final UserRepository userRepository;
-    private final UserJwtService userJwtService;
     private final UserMapper userMapper;
+    private final OwnershipService ownershipService;
 
     @CacheEvict(value = "users", key = "'all'")
     public User createUser(CreateUser createUser) {
@@ -45,7 +46,7 @@ public class UserService {
                 .id(UUID.randomUUID())
                 .name(createUser.getName())
                 .preferredCategories(createUser.getPreferredCategories())
-                .authorities(List.of(USER_AUTHORITY))
+                .authorities(List.of(OwnershipService.USER_AUTHORITY))
                 .build();
         return saveAndMapUser(userToSave);
     }
@@ -58,7 +59,7 @@ public class UserService {
     )
     public User banUser(UUID id, BanUser banUser) {
         log.debug("Execute ban user for id '{}' with duration '{}'", id, banUser);
-        EUser userToBan = userJwtService.retrieveById(id);
+        EUser userToBan = self.findEntityById(id);
         String duration = banUser.getDuration()+banUser.getUnit().getValue();
         LocalDateTime banExpiration = LocalDateTime.now().plus(DurationStyle.detectAndParse(duration));
         userToBan.setBanExpiration(banExpiration);
@@ -67,36 +68,37 @@ public class UserService {
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "user_entity", key = "#p0"),
+                    @CacheEvict(value = "user", key = "#p0"),
                     @CacheEvict(value = "users", key = "'all'")
             }
     )
     public User giveAdminAuthorityToUser(UUID id) {
         log.debug("Execute give admin authority to user with id '{}'", id);
-        EUser eUser = userJwtService.retrieveById(id);
-        eUser.setAuthorities(List.of(USER_AUTHORITY, ADMIN_AUTHORITIY));
+        EUser eUser = self.findEntityById(id);
+        eUser.setAuthorities(List.of(OwnershipService.USER_AUTHORITY, OwnershipService.ADMIN_AUTHORITY));
         return saveAndMapUser(eUser);
     }
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "user_entity", key = "#p0.id"),
+                    @CacheEvict(value = "user", key = "#p0.id"),
                     @CacheEvict(value = "users", key = "'all'")
             }
     )
     public void evictUserCache(EUser eUser) {
-        log.debug("Evicted user_entity cache for key '{}'", eUser.getId());
+        log.debug("Evicted user cache for key '{}'", eUser.getId());
     }
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "user_entity", key = "#p0.id"),
+                    @CacheEvict(value = "user", key = "#p0.id"),
                     @CacheEvict(value = "users", key = "'all'")
             }
     )
     public User updateUser(UpdateUser updateUser) {
         log.debug("Execute update user for '{}'", updateUser);
-        EUser userToUpdate = userJwtService.retrieveById(updateUser.getId());
+        validateUser(updateUser.getId());
+        EUser userToUpdate = self.findEntityById(updateUser.getId());
 
         if(!userToUpdate.getName().equalsIgnoreCase(updateUser.getName()))
             checkIfUserExists(updateUser.getName());
@@ -119,17 +121,19 @@ public class UserService {
 
     public User findById(UUID id) {
         log.debug("Execute user find by id '{}'", id);
-        return userMapper.map(userJwtService.retrieveById(id));
+        validateUser(id);
+        return userMapper.map(self.findEntityById(id));
     }
 
-    @CacheEvict(value = "user_entity", key = "#p0")
+    @CacheEvict(value = "user", key = "#p0")
     public void deleteById(UUID id) {
         log.debug("Execute user delete by id '{}'", id);
-        userJwtService.retrieveById(id);
+        validateUser(id);
+        self.findEntityById(id);
         userRepository.deleteById(id);
     }
 
-    @Cacheable(value="user_entity", key = "#p0")
+    @Cacheable(value="user", key = "#p0")
     public EUser findEntityById(UUID id) {
         log.debug("Execute user find entity by id '{}'", id);
         return userRepository.findById(id)
@@ -151,6 +155,10 @@ public class UserService {
     private User saveAndMapUser(EUser userToSave) {
         EUser savedUser = userRepository.save(userToSave);
         return userMapper.map(savedUser);
+    }
+
+    private void validateUser(UUID id) {
+        ownershipService.validateOwnership(id);
     }
 
 

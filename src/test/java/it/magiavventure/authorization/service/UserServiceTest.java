@@ -5,7 +5,7 @@ import it.magiavventure.authorization.model.BanUser;
 import it.magiavventure.authorization.model.CreateUser;
 import it.magiavventure.authorization.model.UpdateUser;
 import it.magiavventure.common.error.MagiavventureException;
-import it.magiavventure.jwt.service.UserJwtService;
+import it.magiavventure.jwt.service.OwnershipService;
 import it.magiavventure.mongo.entity.EUser;
 import it.magiavventure.mongo.model.Category;
 import it.magiavventure.mongo.model.User;
@@ -32,7 +32,9 @@ class UserServiceTest {
     @InjectMocks
     private UserService userService;
     @Mock
-    private UserJwtService userJwtService;
+    private UserService self;
+    @Mock
+    private OwnershipService ownershipService;
     @Mock
     private UserRepository userRepository;
     @Spy
@@ -145,7 +147,8 @@ class UserServiceTest {
                 .preferredCategories(categories)
                 .build();
 
-        Mockito.when(userJwtService.retrieveById(id))
+        Mockito.doNothing().when(ownershipService).validateOwnership(id);
+        Mockito.when(self.findEntityById(id))
                 .thenReturn(eUser);
         Mockito.when(userRepository.save(eUserArgumentCaptor.capture()))
                 .thenReturn(eUserUpdated);
@@ -154,7 +157,8 @@ class UserServiceTest {
 
         User user = userService.updateUser(updateUser);
 
-        Mockito.verify(userJwtService).retrieveById(id);
+        Mockito.verify(ownershipService).validateOwnership(id);
+        Mockito.verify(self).findEntityById(id);
         Mockito.verify(userRepository).save(eUserArgumentCaptor.capture());
         Mockito.verify(userRepository).exists(exampleArgumentCaptor.capture());
         EUser userCapt = eUserArgumentCaptor.getValue();
@@ -198,14 +202,16 @@ class UserServiceTest {
                 .preferredCategories(categories)
                 .build();
 
-        Mockito.when(userJwtService.retrieveById(id))
+        Mockito.doNothing().when(ownershipService).validateOwnership(id);
+        Mockito.when(self.findEntityById(id))
                 .thenReturn(eUser);
         Mockito.when(userRepository.save(eUserArgumentCaptor.capture()))
                 .thenReturn(eUserUpdated);
 
         User user = userService.updateUser(updateUser);
 
-        Mockito.verify(userJwtService).retrieveById(id);
+        Mockito.verify(ownershipService).validateOwnership(id);
+        Mockito.verify(self).findEntityById(id);
         Mockito.verify(userRepository).save(eUserArgumentCaptor.capture());
         EUser userCapt = eUserArgumentCaptor.getValue();
 
@@ -240,7 +246,8 @@ class UserServiceTest {
                 .preferredCategories(categories)
                 .build();
 
-        Mockito.when(userJwtService.retrieveById(id))
+        Mockito.doNothing().when(ownershipService).validateOwnership(id);
+        Mockito.when(self.findEntityById(id))
                 .thenReturn(eUser);
         Mockito.when(userRepository.exists(exampleArgumentCaptor.capture()))
                 .thenReturn(true);
@@ -248,7 +255,8 @@ class UserServiceTest {
         MagiavventureException exception = Assertions.assertThrows(MagiavventureException.class,
                 () -> userService.updateUser(updateUser));
 
-        Mockito.verify(userJwtService).retrieveById(id);
+        Mockito.verify(ownershipService).validateOwnership(id);
+        Mockito.verify(self).findEntityById(id);
         Mockito.verify(userRepository).exists(exampleArgumentCaptor.capture());
         Example<EUser> example = exampleArgumentCaptor.getValue();
 
@@ -274,12 +282,14 @@ class UserServiceTest {
                 .preferredCategories(categories)
                 .build();
 
-        Mockito.when(userJwtService.retrieveById(id))
+        Mockito.doNothing().when(ownershipService).validateOwnership(id);
+        Mockito.when(self.findEntityById(id))
                 .thenReturn(eUser);
 
         User user = userService.findById(id);
 
-        Mockito.verify(userJwtService).retrieveById(id);
+        Mockito.verify(ownershipService).validateOwnership(id);
+        Mockito.verify(self).findEntityById(id);
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(eUser.getName(), user.getName());
@@ -337,13 +347,15 @@ class UserServiceTest {
                 .preferredCategories(categories)
                 .build();
 
-        Mockito.when(userJwtService.retrieveById(id))
+        Mockito.doNothing().when(ownershipService).validateOwnership(id);
+        Mockito.when(self.findEntityById(id))
                 .thenReturn(eUser);
         Mockito.doNothing().when(userRepository).deleteById(id);
 
         userService.deleteById(id);
 
-        Mockito.verify(userJwtService).retrieveById(id);
+        Mockito.verify(ownershipService).validateOwnership(id);
+        Mockito.verify(self).findEntityById(id);
         Mockito.verify(userRepository).deleteById(id);
     }
 
@@ -413,7 +425,7 @@ class UserServiceTest {
                 .preferredCategories(categories)
                 .build();
 
-        Mockito.when(userJwtService.retrieveById(id))
+        Mockito.when(self.findEntityById(id))
                 .thenReturn(eUser);
         Mockito.when(userRepository.save(eUserArgumentCaptor.capture()))
                 .thenReturn(eUser);
@@ -421,7 +433,7 @@ class UserServiceTest {
         User user = userService.banUser(id, banUser);
 
         Mockito.verify(userRepository).save(eUserArgumentCaptor.capture());
-        Mockito.verify(userJwtService).retrieveById(id);
+        Mockito.verify(self).findEntityById(id);
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(eUser.getId(), user.getId());
@@ -451,7 +463,7 @@ class UserServiceTest {
                 .preferredCategories(categories)
                 .build();
 
-        Mockito.when(userJwtService.retrieveById(id))
+        Mockito.when(self.findEntityById(id))
                 .thenReturn(eUser);
         Mockito.when(userRepository.save(eUserArgumentCaptor.capture()))
                 .thenReturn(eUser);
@@ -459,7 +471,7 @@ class UserServiceTest {
         User user = userService.giveAdminAuthorityToUser(id);
 
         Mockito.verify(userRepository).save(eUserArgumentCaptor.capture());
-        Mockito.verify(userJwtService).retrieveById(id);
+        Mockito.verify(self).findEntityById(id);
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(eUser.getId(), user.getId());
