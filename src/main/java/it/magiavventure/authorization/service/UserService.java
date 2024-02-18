@@ -145,7 +145,8 @@ public class UserService {
         Example<EUser> example = Example.of(EUser
                 .builder()
                 .name(name)
-                .build(), ExampleMatcher.matchingAny());
+                .build(), ExampleMatcher.matchingAny().withMatcher("name",
+                ExampleMatcher.GenericPropertyMatchers.ignoreCase()));
 
         if(userRepository.exists(example))
             throw MagiavventureException.of(AuthorizationException.USER_EXISTS, name);
