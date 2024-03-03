@@ -74,12 +74,14 @@ class AuthorizationOperationTest {
         CreateUser createUser = CreateUser
                 .builder()
                 .name("name")
+                .avatar("avatar")
                 .preferredCategories(List.of(category))
                 .build();
         User returnedUser = User
                 .builder()
                 .id(UUID.randomUUID())
                 .name("name")
+                .avatar("avatar")
                 .preferredCategories(List.of(category))
                 .build();
 
@@ -92,6 +94,7 @@ class AuthorizationOperationTest {
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(createUser.getName(), user.getName());
+        Assertions.assertEquals(createUser.getAvatar(), user.getAvatar());
         Assertions.assertNotNull(user.getId());
         Assertions.assertEquals(createUser.getPreferredCategories(), user.getPreferredCategories());
     }
@@ -109,6 +112,7 @@ class AuthorizationOperationTest {
                 .builder()
                 .id(UUID.randomUUID())
                 .name("name")
+                .avatar("avatar")
                 .preferredCategories(List.of(category))
                 .build();
 
@@ -123,6 +127,7 @@ class AuthorizationOperationTest {
         users.stream().findFirst()
                         .ifPresent(user -> {
                             Assertions.assertEquals(returnedUser.getName(), user.getName());
+                            Assertions.assertEquals(returnedUser.getAvatar(), user.getAvatar());
                             Assertions.assertNotNull(user.getId());
                             Assertions.assertEquals(returnedUser.getPreferredCategories(),
                                     user.getPreferredCategories());
@@ -143,6 +148,7 @@ class AuthorizationOperationTest {
                 .builder()
                 .id(id)
                 .name("name")
+                .avatar("avatar")
                 .preferredCategories(List.of(category))
                 .build();
 
@@ -155,6 +161,7 @@ class AuthorizationOperationTest {
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(returnedUser.getName(), user.getName());
+        Assertions.assertEquals(returnedUser.getAvatar(), user.getAvatar());
         Assertions.assertEquals(id, user.getId());
         Assertions.assertEquals(returnedUser.getPreferredCategories(), user.getPreferredCategories());
     }
@@ -183,12 +190,14 @@ class AuthorizationOperationTest {
                 .builder()
                 .id(id)
                 .name("name")
+                .avatar("avatar")
                 .preferredCategories(List.of(category))
                 .build();
         User returnedUser = User
                 .builder()
                 .id(id)
                 .name("name")
+                .avatar("avatar")
                 .preferredCategories(List.of(category))
                 .build();
 
@@ -201,6 +210,7 @@ class AuthorizationOperationTest {
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(updateUser.getName(), user.getName());
+        Assertions.assertEquals(updateUser.getAvatar(), user.getAvatar());
         Assertions.assertEquals(updateUser.getId(), user.getId());
         Assertions.assertEquals(updateUser.getPreferredCategories(), user.getPreferredCategories());
     }

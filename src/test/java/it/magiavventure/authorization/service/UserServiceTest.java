@@ -48,21 +48,23 @@ class UserServiceTest {
     @Test
     @DisplayName("Create user with name that not exists")
     void createUser_ok_nameNotExists() {
-        var categories = List.of(Category
+        List<Category> categories = List.of(Category
                 .builder()
                 .id(UUID.randomUUID())
                 .name("category")
                 .background("background")
                 .build());
-        var createUser = CreateUser
+        CreateUser createUser = CreateUser
                 .builder()
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
-        var eUser = EUser
+        EUser eUser = EUser
                 .builder()
                 .id(UUID.randomUUID())
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -81,8 +83,10 @@ class UserServiceTest {
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(createUser.getName(), user.getName());
+        Assertions.assertEquals(createUser.getAvatar(), user.getAvatar());
         Assertions.assertIterableEquals(createUser.getPreferredCategories(), user.getPreferredCategories());
         Assertions.assertEquals(userCapt.getName(), user.getName());
+        Assertions.assertEquals(userCapt.getAvatar(), user.getAvatar());
         Assertions.assertIterableEquals(userCapt.getPreferredCategories(), user.getPreferredCategories());
         Assertions.assertIterableEquals(userCapt.getAuthorities(), List.of("user"));
         Assertions.assertNotNull(userCapt.getId());
@@ -92,15 +96,16 @@ class UserServiceTest {
     @Test
     @DisplayName("Create user with name that already exists")
      void createUser_ko_nameAlreadyExists() {
-        var categories = List.of(Category
+        List<Category> categories = List.of(Category
                 .builder()
                 .id(UUID.randomUUID())
                 .name("category")
                 .background("background")
                 .build());
-        var createUser = CreateUser
+        CreateUser createUser = CreateUser
                 .builder()
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -121,29 +126,32 @@ class UserServiceTest {
     @Test
     @DisplayName("Update user with name that not exists")
     void updateUser_ok_nameNotExists() {
-        var id = UUID.randomUUID();
-        var categories = List.of(Category
+        UUID id = UUID.randomUUID();
+        List<Category> categories = List.of(Category
                 .builder()
                 .id(UUID.randomUUID())
                 .name("category")
                 .background("background")
                 .build());
-        var updateUser = UpdateUser
+        UpdateUser updateUser = UpdateUser
                 .builder()
                 .id(id)
                 .name("test 2")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
-        var eUser = EUser
+        EUser eUser = EUser
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
-        var eUserUpdated = EUser
+        EUser eUserUpdated = EUser
                 .builder()
                 .id(id)
                 .name("test 2")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -166,8 +174,10 @@ class UserServiceTest {
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(updateUser.getName(), user.getName());
+        Assertions.assertEquals(updateUser.getAvatar(), user.getAvatar());
         Assertions.assertIterableEquals(updateUser.getPreferredCategories(), user.getPreferredCategories());
         Assertions.assertEquals(updateUser.getName(), userCapt.getName());
+        Assertions.assertEquals(updateUser.getAvatar(), userCapt.getAvatar());
         Assertions.assertIterableEquals(updateUser.getPreferredCategories(), userCapt.getPreferredCategories());
         Assertions.assertNotNull(userCapt.getId());
         Assertions.assertEquals(updateUser.getName(), example.getProbe().getName());
@@ -176,29 +186,32 @@ class UserServiceTest {
     @Test
     @DisplayName("Update user with same name")
     void updateUser_ok_withSameName() {
-        var id = UUID.randomUUID();
-        var categories = List.of(Category
+        UUID id = UUID.randomUUID();
+        List<Category> categories = List.of(Category
                 .builder()
                 .id(UUID.randomUUID())
                 .name("category")
                 .background("background")
                 .build());
-        var updateUser = UpdateUser
+        UpdateUser updateUser = UpdateUser
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
-        var eUser = EUser
+        EUser eUser = EUser
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
-        var eUserUpdated = EUser
+        EUser eUserUpdated = EUser
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -217,8 +230,10 @@ class UserServiceTest {
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(updateUser.getName(), user.getName());
+        Assertions.assertEquals(updateUser.getAvatar(), user.getAvatar());
         Assertions.assertIterableEquals(updateUser.getPreferredCategories(), user.getPreferredCategories());
         Assertions.assertEquals(updateUser.getName(), userCapt.getName());
+        Assertions.assertEquals(updateUser.getAvatar(), userCapt.getAvatar());
         Assertions.assertIterableEquals(updateUser.getPreferredCategories(), userCapt.getPreferredCategories());
         Assertions.assertNotNull(userCapt.getId());
     }
@@ -226,23 +241,25 @@ class UserServiceTest {
     @Test
     @DisplayName("Update user with name that already exists")
     void updateUser_ko_userNameAlreadyExists() {
-        var id = UUID.randomUUID();
-        var categories = List.of(Category
+        UUID id = UUID.randomUUID();
+        List<Category> categories = List.of(Category
                 .builder()
                 .id(UUID.randomUUID())
                 .name("category")
                 .background("background")
                 .build());
-        var updateUser = UpdateUser
+        UpdateUser updateUser = UpdateUser
                 .builder()
                 .id(id)
                 .name("test 2")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
-        var eUser = EUser
+        EUser eUser = EUser
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -268,17 +285,18 @@ class UserServiceTest {
     @Test
     @DisplayName("Find user by id")
     void findUserById_ok() {
-        var id = UUID.randomUUID();
-        var categories = List.of(Category
+        UUID id = UUID.randomUUID();
+        List<Category> categories = List.of(Category
                 .builder()
                 .id(UUID.randomUUID())
                 .name("category")
                 .background("background")
                 .build());
-        var eUser = EUser
+        EUser eUser = EUser
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -293,26 +311,28 @@ class UserServiceTest {
 
         Assertions.assertNotNull(user);
         Assertions.assertEquals(eUser.getName(), user.getName());
+        Assertions.assertEquals(eUser.getAvatar(), user.getAvatar());
         Assertions.assertIterableEquals(eUser.getPreferredCategories(), user.getPreferredCategories());
     }
 
     @Test
     @DisplayName("Find all users")
     void findAllUsers_ok() {
-        var id = UUID.randomUUID();
-        var categories = List.of(Category
+        UUID id = UUID.randomUUID();
+        List<Category> categories = List.of(Category
                 .builder()
                 .id(UUID.randomUUID())
                 .name("category")
                 .background("background")
                 .build());
-        var eUser = EUser
+        EUser eUser = EUser
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
-        var usersResponse = List.of(eUser);
+        List<EUser> usersResponse = List.of(eUser);
 
         Mockito.when(userRepository.findAll(sortArgumentCaptor.capture()))
                 .thenReturn(usersResponse);
@@ -333,17 +353,18 @@ class UserServiceTest {
     @Test
     @DisplayName("Delete user by id")
     void deleteUserById_ok() {
-        var id = UUID.randomUUID();
-        var categories = List.of(Category
+        UUID id = UUID.randomUUID();
+        List<Category> categories = List.of(Category
                 .builder()
                 .id(UUID.randomUUID())
                 .name("category")
                 .background("background")
                 .build());
-        var eUser = EUser
+        EUser eUser = EUser
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -373,6 +394,7 @@ class UserServiceTest {
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -386,6 +408,7 @@ class UserServiceTest {
         Assertions.assertNotNull(foundUser);
         Assertions.assertEquals(eUser.getId(), foundUser.getId());
         Assertions.assertEquals(eUser.getName(), foundUser.getName());
+        Assertions.assertEquals(eUser.getAvatar(), foundUser.getAvatar());
         Assertions.assertIterableEquals(eUser.getPreferredCategories(), foundUser.getPreferredCategories());
     }
 
@@ -422,6 +445,7 @@ class UserServiceTest {
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -438,6 +462,7 @@ class UserServiceTest {
         Assertions.assertNotNull(user);
         Assertions.assertEquals(eUser.getId(), user.getId());
         Assertions.assertEquals(eUser.getName(), user.getName());
+        Assertions.assertEquals(eUser.getAvatar(), user.getAvatar());
         Assertions.assertIterableEquals(eUser.getPreferredCategories(), user.getPreferredCategories());
         EUser userCaptured = eUserArgumentCaptor.getValue();
         Assertions.assertNotNull(userCaptured);
@@ -460,6 +485,7 @@ class UserServiceTest {
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
 
@@ -476,6 +502,7 @@ class UserServiceTest {
         Assertions.assertNotNull(user);
         Assertions.assertEquals(eUser.getId(), user.getId());
         Assertions.assertEquals(eUser.getName(), user.getName());
+        Assertions.assertEquals(eUser.getAvatar(), user.getAvatar());
         Assertions.assertIterableEquals(eUser.getPreferredCategories(), user.getPreferredCategories());
         EUser userCaptured = eUserArgumentCaptor.getValue();
         Assertions.assertNotNull(userCaptured);
@@ -497,6 +524,7 @@ class UserServiceTest {
                 .builder()
                 .id(id)
                 .name("test")
+                .avatar("avatar")
                 .preferredCategories(categories)
                 .build();
         Assertions.assertDoesNotThrow(() -> userService.evictUserCache(eUser));

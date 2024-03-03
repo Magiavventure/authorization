@@ -19,5 +19,7 @@ public class UpdateUser {
     private UUID id;
     @NotNull
     private String name;
+    @NotNull
+    private String avatar;
     private List<Category> preferredCategories;
 }

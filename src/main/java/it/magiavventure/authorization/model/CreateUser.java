@@ -17,4 +17,6 @@ public class CreateUser {
     @NotNull
     private String name;
     private List<Category> preferredCategories;
+    @NotNull
+    private String avatar;
 }

@@ -45,6 +45,7 @@ public class UserService {
                 .builder()
                 .id(UUID.randomUUID())
                 .name(createUser.getName())
+                .avatar(createUser.getAvatar())
                 .preferredCategories(createUser.getPreferredCategories())
                 .authorities(List.of(OwnershipService.USER_AUTHORITY))
                 .build();
@@ -104,6 +105,7 @@ public class UserService {
             checkIfUserExists(updateUser.getName());
 
         userToUpdate.setName(updateUser.getName());
+        userToUpdate.setAvatar(updateUser.getAvatar());
         userToUpdate.setPreferredCategories(updateUser.getPreferredCategories());
 
         return saveAndMapUser(userToUpdate);
